@@ -2,14 +2,19 @@ package com.rajanlad.immersiv_play.presentation
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -17,6 +22,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -25,11 +34,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.xr.compose.platform.LocalSession
 import androidx.xr.compose.platform.LocalSpatialCapabilities
-import androidx.xr.compose.platform.LocalSpatialConfiguration
-import androidx.xr.compose.spatial.ContentEdge
+
 import androidx.xr.compose.spatial.Orbiter
+import androidx.xr.compose.spatial.OrbiterEdge
 import androidx.xr.compose.spatial.Subspace
 import androidx.xr.compose.subspace.SpatialPanel
 import androidx.xr.compose.subspace.layout.SpatialRoundedCornerShape
@@ -38,16 +48,29 @@ import androidx.xr.compose.subspace.layout.height
 import androidx.xr.compose.subspace.layout.movable
 import androidx.xr.compose.subspace.layout.resizable
 import androidx.xr.compose.subspace.layout.width
-import com.android.extensions.xr.splitengine.SystemRendererConnection
 import com.rajanlad.immersiv_play.R
+import com.rajanlad.immersiv_play.data.network.models.Video_Source
+import com.rajanlad.immersiv_play.presentation.composables.VideoDialog
+import com.rajanlad.immersiv_play.presentation.composables.VideoItem
 import com.rajanlad.immersiv_play.presentation.ui.theme.Immersiv_playTheme
+import com.rajanlad.immersiv_play.presentation.viewmodels.MainActivityViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.forEach
+import kotlin.getValue
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val TAG = "MainActivity"
+
 
     @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
+
+        val mainActivityViewModel : MainActivityViewModel by viewModels()
 
         setContent {
             Immersiv_playTheme {
@@ -58,11 +81,11 @@ class MainActivity : ComponentActivity() {
                     Subspace {
                         MySpatialContent(
 //                            onRequestHomeSpaceMode = spatialConfiguration::requestHomeSpaceMode
+                            mainActivityViewModel
                         )
                     }
                 } else {
-                    My2DContent(
-//                        onRequestFullSpaceMode = spatialConfiguration::requestFullSpaceMode
+                    My2DContent(mainActivityViewModel
                     )
                 }
             }
@@ -72,52 +95,66 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("RestrictedApi")
 @Composable
-fun MySpatialContent() {
+fun MySpatialContent(viewModel: MainActivityViewModel) {
     SpatialPanel(SubspaceModifier.width(1280.dp).height(800.dp).resizable().movable()) {
         Surface {
             MainContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(48.dp)
-            )
+            ,viewModel.videos)
         }
         Orbiter(
-            position = ContentEdge.Top,
+            position = OrbiterEdge.Top,
             offset = 20.dp,
             alignment = Alignment.End,
             shape = SpatialRoundedCornerShape(CornerSize(28.dp))
         ) {
-//            HomeSpaceModeIconButton(
-//                onClick = onRequestHomeSpaceMode,
-//                modifier = Modifier.size(56.dp)
-//            )
+
         }
     }
 }
 
 @SuppressLint("RestrictedApi")
 @Composable
-fun My2DContent() {
-    Surface {
+fun My2DContent(viewModel: MainActivityViewModel) {
+
+    Surface(modifier = Modifier.statusBarsPadding()) {
+
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            MainContent(modifier = Modifier.padding(48.dp))
+            MainContent(modifier = Modifier.padding(48.dp),viewModel.videos)
             // Preview does not current support XR sessions.
-            if (!LocalInspectionMode.current && LocalSession.current != null) {
-//                FullSpaceModeIconButton(
-//                    onClick = onRequestFullSpaceMode,
-//                    modifier = Modifier.padding(32.dp)
-//                )
-            }
         }
     }
 }
 
 @Composable
-fun MainContent(modifier: Modifier = Modifier) {
-    Text(text = stringResource(R.string.hello_android_xr), modifier = modifier)
+fun MainContent(modifier: Modifier = Modifier, videos: StateFlow<List<Video_Source>>) {
+    var listofvids = videos.collectAsState()
+    val openAlertDialog = remember { mutableStateOf(false) }
+    val videoLink = remember { mutableStateOf("") }
+    LazyColumn {
+        items(listofvids.value){
+                VideoItem(it) {
+                    openAlertDialog.value = true
+                    videoLink.value = it.url ?: ""
+                }
+        }
+    }
+
+    when {
+        openAlertDialog.value ->{
+            VideoDialog(
+                videoUrl = videoLink.value,
+                onDismissRequest = {
+                    openAlertDialog.value = false
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -140,26 +177,26 @@ fun HomeSpaceModeIconButton(onClick: () -> Unit, modifier: Modifier = Modifier) 
     }
 }
 
-@PreviewLightDark
-@Composable
-fun My2dContentPreview() {
-    Immersiv_playTheme {
-        My2DContent()
-    }
-}
+//@PreviewLightDark
+//@Composable
+//fun My2dContentPreview() {
+//    val mainActivityViewModel : MainActivityViewModel = viewModel()
+//    Immersiv_playTheme {
+//        My2DContent(mainActivityViewModel)
+//    }
+//}
 
 @Preview(showBackground = true)
 @Composable
 fun FullSpaceModeButtonPreview() {
     Immersiv_playTheme {
-        FullSpaceModeIconButton(onClick = {})
     }
 }
 
-@PreviewLightDark
-@Composable
-fun HomeSpaceModeButtonPreview() {
-    Immersiv_playTheme {
-        HomeSpaceModeIconButton(onClick = {})
-    }
-}
+//@PreviewLightDark
+//@Composable
+//fun HomeSpaceModeButtonPreview() {
+//    Immersiv_playTheme {
+//        HomeSpaceModeIconButton(onClick = {})
+//    }
+//}

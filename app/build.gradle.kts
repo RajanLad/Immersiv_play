@@ -1,18 +1,19 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.kapt)
 }
 
 android {
     namespace = "com.rajanlad.immersiv_play"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.rajanlad.immersiv_play"
-        minSdk = 34
-        targetSdk = 36
+        minSdk = 30
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -32,6 +33,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
     buildFeatures {
         compose = true
     }
@@ -49,10 +53,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose)
-    implementation(libs.androidx.runtime)
-    implementation(libs.androidx.scenecore)
-    implementation(libs.androidx.arcore)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -60,9 +61,30 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-// https://mvnrepository.com/artifact/com.android.extensions.xr/extensions-xr
-    implementation(libs.androidx.extensions.xr)
-    implementation("com.google.ar:core:1.30.0")
-// Example version
-    compileOnly(libs.androidx.extensions.xr) //This is necessary for Proguard minification
+
+    //XR dependencies
+    implementation(libs.androidx.compose)
+    implementation(libs.androidx.runtime)
+    implementation(libs.androidx.scenecore)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+    implementation (libs.hilt.android)
+    kapt  (libs.hilt.compiler)
+    kapt  (libs.androidx.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    //coil
+    implementation(libs.coil.compose)
+
+    //
+    implementation (libs.androidx.media3.exoplayer)
+    implementation (libs.androidx.media3.ui)
+    implementation (libs.androidx.media3.exoplayer.hls)
+
+
+
+
 }
