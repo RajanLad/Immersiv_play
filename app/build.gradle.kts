@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.androidx.compose)
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.scenecore)
+    implementation(libs.androidx.arcore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,4 +60,9 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+// https://mvnrepository.com/artifact/com.android.extensions.xr/extensions-xr
+    implementation(libs.androidx.extensions.xr)
+    implementation("com.google.ar:core:1.30.0")
+// Example version
+    compileOnly(libs.androidx.extensions.xr) //This is necessary for Proguard minification
 }

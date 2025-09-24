@@ -1,4 +1,4 @@
-package com.rajanlad.immersiv_play.ui.theme
+package com.rajanlad.immersiv_play.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

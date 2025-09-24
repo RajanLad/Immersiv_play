@@ -1,4 +1,4 @@
-package com.rajanlad.immersiv_play
+package com.rajanlad.immersiv_play.presentation
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -38,7 +38,9 @@ import androidx.xr.compose.subspace.layout.height
 import androidx.xr.compose.subspace.layout.movable
 import androidx.xr.compose.subspace.layout.resizable
 import androidx.xr.compose.subspace.layout.width
-import com.rajanlad.immersiv_play.ui.theme.Immersiv_playTheme
+import com.android.extensions.xr.splitengine.SystemRendererConnection
+import com.rajanlad.immersiv_play.R
+import com.rajanlad.immersiv_play.presentation.ui.theme.Immersiv_playTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -49,15 +51,19 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Immersiv_playTheme {
-                val spatialConfiguration = LocalSpatialConfiguration.current
+
+
+//                val spatialConfiguration = LocalSpatialConfiguration.current
                 if (LocalSpatialCapabilities.current.isSpatialUiEnabled) {
                     Subspace {
                         MySpatialContent(
-                            onRequestHomeSpaceMode = spatialConfiguration::requestHomeSpaceMode
+//                            onRequestHomeSpaceMode = spatialConfiguration::requestHomeSpaceMode
                         )
                     }
                 } else {
-                    My2DContent(onRequestFullSpaceMode = spatialConfiguration::requestFullSpaceMode)
+                    My2DContent(
+//                        onRequestFullSpaceMode = spatialConfiguration::requestFullSpaceMode
+                    )
                 }
             }
         }
@@ -66,7 +72,7 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("RestrictedApi")
 @Composable
-fun MySpatialContent(onRequestHomeSpaceMode: () -> Unit) {
+fun MySpatialContent() {
     SpatialPanel(SubspaceModifier.width(1280.dp).height(800.dp).resizable().movable()) {
         Surface {
             MainContent(
@@ -81,17 +87,17 @@ fun MySpatialContent(onRequestHomeSpaceMode: () -> Unit) {
             alignment = Alignment.End,
             shape = SpatialRoundedCornerShape(CornerSize(28.dp))
         ) {
-            HomeSpaceModeIconButton(
-                onClick = onRequestHomeSpaceMode,
-                modifier = Modifier.size(56.dp)
-            )
+//            HomeSpaceModeIconButton(
+//                onClick = onRequestHomeSpaceMode,
+//                modifier = Modifier.size(56.dp)
+//            )
         }
     }
 }
 
 @SuppressLint("RestrictedApi")
 @Composable
-fun My2DContent(onRequestFullSpaceMode: () -> Unit) {
+fun My2DContent() {
     Surface {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -100,10 +106,10 @@ fun My2DContent(onRequestFullSpaceMode: () -> Unit) {
             MainContent(modifier = Modifier.padding(48.dp))
             // Preview does not current support XR sessions.
             if (!LocalInspectionMode.current && LocalSession.current != null) {
-                FullSpaceModeIconButton(
-                    onClick = onRequestFullSpaceMode,
-                    modifier = Modifier.padding(32.dp)
-                )
+//                FullSpaceModeIconButton(
+//                    onClick = onRequestFullSpaceMode,
+//                    modifier = Modifier.padding(32.dp)
+//                )
             }
         }
     }
@@ -138,7 +144,7 @@ fun HomeSpaceModeIconButton(onClick: () -> Unit, modifier: Modifier = Modifier) 
 @Composable
 fun My2dContentPreview() {
     Immersiv_playTheme {
-        My2DContent(onRequestFullSpaceMode = {})
+        My2DContent()
     }
 }
 
