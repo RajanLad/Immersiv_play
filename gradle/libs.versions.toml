@@ -13,8 +13,9 @@ composeBom = "2025.07.00"
 compose = "1.0.0-alpha01"
 
 media3Exoplayer = "1.0.0"
-runtime = "1.0.0-alpha01"
-scenecore = "1.0.0-alpha01"
+runtime = "1.0.0-alpha07"
+scenecore = "1.0.0-alpha07"
+xrCompose = "1.0.0-alpha07"
 
 hilt = "2.51"
 hiltAndroid = "2.51"
@@ -55,6 +56,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose = { group = "androidx.xr.compose", name = "compose", version.ref = "compose" }
 androidx-runtime = { group = "androidx.xr.runtime", name = "runtime", version.ref = "runtime" }
 androidx-scenecore = { group = "androidx.xr.scenecore", name = "scenecore", version.ref = "scenecore" }
+androidx-xr-compose = { group = "androidx.xr.compose", name = "compose", version.ref = "xrCompose" }
 
 #androidx-arcore = { module = "androidx.xr.arcore:arcore", version.ref = "arcore" }
 #androidx-extensions-xr = { module = "com.android.extensions.xr:extensions-xr", version.ref = "extensionsXr" }

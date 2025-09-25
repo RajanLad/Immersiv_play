@@ -21,6 +21,7 @@ class MainActivityViewModel @Inject constructor(
 
     init {
         fetchVideos()
+        Log.e(TAG, "LocalSpatialCapabilities.current.isSpatialUiEnabled : " )
     }
 
     private fun fetchVideos() {

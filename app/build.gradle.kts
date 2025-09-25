@@ -66,6 +66,8 @@ dependencies {
     implementation(libs.androidx.compose)
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.scenecore)
+    implementation(libs.androidx.xr.compose)
+
 
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
