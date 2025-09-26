@@ -64,7 +64,10 @@ fun VideoDialog(
                     contentDescription = "Close",
                     modifier = Modifier
                         .padding(10.dp)
-                        .clickable { onDismissRequest() }
+                        .clickable {
+                            exoPlayer.release()
+                            onDismissRequest()
+                        }
                         .zIndex(2.0f),
                     tint = Color.Black
                 )
@@ -73,7 +76,7 @@ fun VideoDialog(
                 AndroidExternalSurface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(16f / 9f), // Ensures visible surface
+                        .aspectRatio(16f / 9f),
                     onInit = {
                         onSurface { surface, _, _ ->
                             exoPlayer.setVideoSurface(surface)

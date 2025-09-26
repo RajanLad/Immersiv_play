@@ -25,10 +25,6 @@ class MainActivityViewModel @Inject constructor(
     private val _videos = MutableStateFlow(emptyList<Video_Source>())
     val videos: StateFlow<List<Video_Source>> get() = _videos
 
-//    private val _model = mutableStateOf<GltfModel?>(null)
-//    val model: State<GltfModel?> = _model
-
-
     init {
         fetchVideos()
     }

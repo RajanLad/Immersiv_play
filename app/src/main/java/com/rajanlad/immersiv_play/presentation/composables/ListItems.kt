@@ -21,7 +21,7 @@ import com.rajanlad.immersiv_play.presentation.ui.theme.Immersiv_playTheme
 
 @Composable
 fun VideoItem(videoSource: Video_Source,onClick:()->Unit){
-    Row(modifier = Modifier.fillMaxWidth().clickable{onClick()}, verticalAlignment = Alignment.CenterVertically){
+    Row(modifier = Modifier.fillMaxWidth().padding(20.dp).clickable{onClick()}, verticalAlignment = Alignment.CenterVertically){
         Image(
             painter = rememberAsyncImagePainter(videoSource.thumbnail),
             contentDescription = null,

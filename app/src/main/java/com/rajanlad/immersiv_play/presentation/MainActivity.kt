@@ -118,107 +118,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Immersiv_playTheme {
-
-
                 val spatialConfiguration = LocalSpatialConfiguration.current
                 if (LocalSpatialCapabilities.current.isSpatialUiEnabled) {
                     Subspace {
-                        val session = LocalSession.current !!
-                        val coroutineScope = rememberCoroutineScope()
-                        ModelInsideVolume(session = session)
-                        MainContentForSpatialContent (videos = mainActivityViewModel.videos,
-                            onRequestHomeSpaceMode = spatialConfiguration::requestHomeSpaceMode
-                        )
-
-//                        SpatialBox() {
-//
-//                            // Panel 1 - farther away
-//                            SpatialPanel(
-//                                modifier = SubspaceModifier
-//                                    .offset(z = 100.dp) // 1 meter in front
-//                                    .size(200.dp)
-//                            ) {
-//                                Text("Panel 1 (Farther)")
-//                            }
-//
-//                            // Panel 2 - closer
-//                            SpatialPanel(
-//                                modifier = SubspaceModifier
-//                                    .offset(z = 50.dp) // 0.5 meters in front
-//                                    .size(200.dp)
-//                            ) {
-//                                Text("Panel 2 (Closer)")
-//                            }
-//                        }
-
-
-
+                    MainContentForSpatialContent (videos = mainActivityViewModel.videos,
+                        onRequestHomeSpaceMode = spatialConfiguration::requestHomeSpaceMode
+                    )
                     }
                 } else {
-                    My2DContent(viewModel = mainActivityViewModel,onRequestFullSpaceMode = spatialConfiguration::requestFullSpaceMode)
+                    MainContent2D(viewModel = mainActivityViewModel,onRequestFullSpaceMode = spatialConfiguration::requestFullSpaceMode)
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalSubspaceVolumeApi::class)
-@Composable
-fun MySpatialContent(
-    viewModel: MainActivityViewModel,
-    onRequestHomeSpaceMode: () -> Unit
-) {
-    val session = LocalSession.current ?: return
-    val coroutineScope = rememberCoroutineScope()
-
-
-    SpatialPanel(
-        SubspaceModifier
-            .width(1280.dp)
-            .height(800.dp)
-            .resizable()
-            .movable()
-    ) {
-        Surface {
-            Row(modifier = Modifier.fillMaxSize()) {
-                // LEFT: 1/4 width
-                Card(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .weight(1f),
-                    elevation = CardDefaults.cardElevation(8.dp),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Text(
-                        text = "This is 1/4 of the width",
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-
-                // RIGHT: 3/4 width
-                Column(
-                    modifier = Modifier
-                        .weight(3f)
-                        .padding(16.dp)
-                ) {
-
-
-
-                }
-            }
-        }
-
-        Orbiter(
-            position = ContentEdge.Top,
-            offset = 20.dp,
-            alignment = Alignment.End,
-            shape = SpatialRoundedCornerShape(CornerSize(28.dp))
-        ) {
-            HomeSpaceModeIconButton(
-                onClick = onRequestHomeSpaceMode,
-                modifier = Modifier.size(56.dp)
-            )
         }
     }
 }
@@ -226,51 +136,46 @@ fun MySpatialContent(
 
 @SuppressLint("RestrictedApi")
 @Composable
-fun My2DContent(viewModel: MainActivityViewModel,onRequestFullSpaceMode: () -> Unit) {
-
+fun MainContent2D(viewModel: MainActivityViewModel,onRequestFullSpaceMode: () -> Unit) {
     Surface {
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            var listofvids = viewModel.videos.collectAsState()
+            val openAlertDialog = remember { mutableStateOf(false) }
+            val videoLink = remember { mutableStateOf("") }
+            LazyColumn(modifier = Modifier.weight(4f)) {
+                items(listofvids.value){
+                    VideoItem(it) {
+                        openAlertDialog.value = true
+                        videoLink.value = it.url ?: ""
+                    }
+                }
+            }
 
-            MainContent(modifier = Modifier.padding(10.dp).weight(4f),viewModel.videos)
-//            if (LocalSession.current != null) {
-            if (true) {
+            when {
+                openAlertDialog.value ->{
+                    VideoDialog(
+                        videoUrl = videoLink.value,
+                        onDismissRequest = {
+                            openAlertDialog.value = false
+                        }
+                    )
+                }
+            }
+            if (LocalSpatialCapabilities.current.isSpatialUiEnabled) {
                 FullSpaceModeIconButton(
                     onClick = onRequestFullSpaceMode,
-                    modifier = Modifier.padding(10.dp).weight(0.5f)
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .weight(0.5f)
                 )
             }
         }
     }
 }
 
-@Composable
-fun MainContent(modifier: Modifier = Modifier, videos: StateFlow<List<Video_Source>>) {
-    var listofvids = videos.collectAsState()
-    val openAlertDialog = remember { mutableStateOf(false) }
-    val videoLink = remember { mutableStateOf("") }
-    LazyColumn(modifier = modifier) {
-        items(listofvids.value){
-                VideoItem(it) {
-                    openAlertDialog.value = true
-                    videoLink.value = it.url ?: ""
-                }
-        }
-    }
-
-    when {
-        openAlertDialog.value ->{
-            VideoDialog(
-                videoUrl = videoLink.value,
-                onDismissRequest = {
-                    openAlertDialog.value = false
-                }
-            )
-        }
-    }
-}
 
 @Composable
 fun MainContentForSpatialContent(
@@ -284,80 +189,30 @@ fun MainContentForSpatialContent(
 
     val context = LocalContext.current
     val exoPlayer = ExoPlayer.Builder(context).build()
+
+    val session = LocalSession.current !!
+    ModelInsideVolume(session = session)
+
     SpatialBox {
         // Main Panel content (e.g., video list)
-        if (!openAlertDialog.value) {
-            SpatialPanel(
-                SubspaceModifier
-                    .offset(z = 100.dp) // Move the main content further back in the Z space
-                    .resizable()
-                    .movable(),
-            ) {
-                Surface {
-
-                    LazyColumn(modifier = modifier) {
-                        items(listofvids.value) {
-                            VideoItem(it) {
-                                openAlertDialog.value = true
-                                videoLink.value = it.url ?: ""
-                            }
-                        }
-                    }
-
-                    Orbiter(
-                        position = ContentEdge.Top,
-                        offset = 20.dp,
-                        alignment = Alignment.End,
-                        shape = SpatialRoundedCornerShape(CornerSize(28.dp))
-                    ) {
-                        HomeSpaceModeIconButton(
-                            onClick = onRequestHomeSpaceMode,
-                            modifier = Modifier.size(56.dp)
-                        )
-                    }
-                }
-
+        ListOfVideosForSpatialLayout(
+            openAlertDialog = openAlertDialog,
+            modifier,
+            listofvids = listofvids,
+            onRequestHomeSpaceMode = onRequestHomeSpaceMode,
+            exoPlayer = exoPlayer,
+            videoLink = { link ->
+                videoLink.value = link
             }
+        )
 
-
-        }
-
-        else{
-            SpatialPanel(
-                                modifier = SubspaceModifier
-                                    .offset(z = 200.dp) // 1 meter in front
-
-                                    .fillMaxSize()
-                            ) {
-
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Close",
-                        modifier = modifier
-                            .padding(20.dp)
-                            .offset(200.dp,400.dp)
-                            .clickable {
-                                exoPlayer.release()
-                                openAlertDialog.value = false
-                            }
-                            .background(Color.White, shape = CircleShape)
-                            .zIndex(2.0f),  // Ensure the close button is on top
-                        tint = Color.Black
-                    )
-                }
-
-
-    }
-        // Video dialog panel, appearing above the main content
         if (openAlertDialog.value) {
 
-
-            // Video surface that appears above the rest of the content
             SpatialExternalSurface(
                 modifier = SubspaceModifier
                     .width(680.dp)
                     .height(400.dp)
-                    .offset(z = 400.dp), // Bring it forward (larger Z-value means closer)
+                    .offset(z = 400.dp),
                 stereoMode = StereoMode.Mono
             ) {
                 onSurfaceCreated { surface ->
@@ -376,6 +231,77 @@ fun MainContentForSpatialContent(
     }
 }
 
+@Composable
+fun ListOfVideosForSpatialLayout(openAlertDialog: MutableState<Boolean>,
+                                 modifier: Modifier,
+                                 listofvids:State<List<Video_Source>>,
+                                 videoLink:(String)->Unit,
+                                 onRequestHomeSpaceMode: () -> Unit,
+                                 exoPlayer: ExoPlayer){
+    if (!openAlertDialog.value) {
+        SpatialPanel(
+            SubspaceModifier
+
+                .offset(z = 100.dp,y=-200.dp)
+                .resizable()
+                .movable(),
+        ) {
+            Surface {
+
+                LazyColumn(modifier = modifier.size(400.dp)) {
+                    items(listofvids.value) {
+                        VideoItem(it) {
+                            openAlertDialog.value = true
+                            videoLink(it.url ?: "")
+                        }
+                    }
+                }
+
+                Orbiter(
+                    position = ContentEdge.Top,
+                    offset = 20.dp,
+                    alignment = Alignment.End,
+                    shape = SpatialRoundedCornerShape(CornerSize(28.dp))
+                ) {
+                    HomeSpaceModeIconButton(
+                        onClick = onRequestHomeSpaceMode,
+                        modifier = Modifier.size(56.dp)
+                    )
+                }
+            }
+
+        }
+
+
+    }
+
+    else{
+        SpatialPanel(
+            modifier = SubspaceModifier
+                .offset(z = 200.dp)
+
+                .fillMaxSize()
+        ) {
+
+            Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = "Close",
+                modifier = modifier
+                    .padding(20.dp)
+                    .offset(200.dp, 400.dp)
+                    .clickable {
+                        exoPlayer.release()
+                        openAlertDialog.value = false
+                    }
+                    .background(Color.White, shape = CircleShape)
+                    .zIndex(2.0f),  // Ensure the close button is on top
+                tint = Color.Black
+            )
+        }
+
+
+    }
+}
 
 @Composable
 fun FullSpaceModeIconButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -397,14 +323,14 @@ fun HomeSpaceModeIconButton(onClick: () -> Unit, modifier: Modifier = Modifier) 
     }
 }
 
-//@PreviewLightDark
-//@Composable
-//fun My2dContentPreview() {
-//    val mainActivityViewModel : MainActivityViewModel = viewModel()
-//    Immersiv_playTheme {
-//        My2DContent(mainActivityViewModel)
-//    }
-//}
+@PreviewLightDark
+@Composable
+fun My2dContentPreview() {
+    val mainActivityViewModel : MainActivityViewModel = viewModel()
+    Immersiv_playTheme {
+
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -414,10 +340,10 @@ fun FullSpaceModeButtonPreview() {
     }
 }
 
-//@PreviewLightDark
-//@Composable
-//fun HomeSpaceModeButtonPreview() {
-//    Immersiv_playTheme {
-//        HomeSpaceModeIconButton(onClick = {})
-//    }
-//}
+@PreviewLightDark
+@Composable
+fun HomeSpaceModeButtonPreview() {
+    Immersiv_playTheme {
+        HomeSpaceModeIconButton(onClick = {})
+    }
+}

@@ -25,15 +25,13 @@ import java.nio.file.Paths
 @Composable
 fun ModelInsideVolume(session: Session) {
     val modelState = remember { mutableStateOf<GltfModelEntity?>(null) }
-// 1. Define translation — 0.5 meters in front of origin
+
     val translation = Vector3(0f, -0.6f, 0.5f)
 
-// 2. Define rotation if needed (or just use Identity)
     val rotation = Quaternion.fromAxisAngle(Vector3.Up,90f)
 
-// 3. Create pose with translation (position) and rotation (orientation)
     val pose = Pose(translation, rotation)
-    // Load model once when session becomes available
+
     LaunchedEffect(session) {
 
 
