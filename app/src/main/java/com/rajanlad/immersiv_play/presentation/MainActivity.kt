@@ -106,26 +106,35 @@ import kotlin.getValue
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val TAG = "MainActivity"
-
+    //Important Concepts
+    ////all spatial elements have to be in SubSpace SpatialRow , SpatialPanel,etc
 
     @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
+
 
         val mainActivityViewModel : MainActivityViewModel by viewModels()
 
         setContent {
             Immersiv_playTheme {
                 val spatialConfiguration = LocalSpatialConfiguration.current
+                //checking if the emulator or device have spatial ui features are present
                 if (LocalSpatialCapabilities.current.isSpatialUiEnabled) {
+
+
+                    //In full space, this application will be the only application in the visible space,
+                    // its spatial capabilities will be expanded, and its physical bounds will expand to fill the entire virtual space
+
                     Subspace {
                     MainContentForSpatialContent (videos = mainActivityViewModel.videos,
                         onRequestHomeSpaceMode = spatialConfiguration::requestHomeSpaceMode
                     )
                     }
                 } else {
+                    //In home space, the visible space may be shared with other applications;
+                    // however, applications in home space will have their spatial capabilities and physical bounds limited.
                     MainContent2D(viewModel = mainActivityViewModel,onRequestFullSpaceMode = spatialConfiguration::requestFullSpaceMode)
                 }
             }
@@ -137,6 +146,7 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("RestrictedApi")
 @Composable
 fun MainContent2D(viewModel: MainActivityViewModel,onRequestFullSpaceMode: () -> Unit) {
+    //Surface is just like Canvas from JS
     Surface {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -145,6 +155,8 @@ fun MainContent2D(viewModel: MainActivityViewModel,onRequestFullSpaceMode: () ->
             var listofvids = viewModel.videos.collectAsState()
             val openAlertDialog = remember { mutableStateOf(false) }
             val videoLink = remember { mutableStateOf("") }
+
+            //get and display list of videos
             LazyColumn(modifier = Modifier.weight(4f)) {
                 items(listofvids.value){
                     VideoItem(it) {
@@ -153,7 +165,7 @@ fun MainContent2D(viewModel: MainActivityViewModel,onRequestFullSpaceMode: () ->
                     }
                 }
             }
-
+            //display videos in a dialog
             when {
                 openAlertDialog.value ->{
                     VideoDialog(
@@ -164,7 +176,7 @@ fun MainContent2D(viewModel: MainActivityViewModel,onRequestFullSpaceMode: () ->
                     )
                 }
             }
-            if (LocalSpatialCapabilities.current.isSpatialUiEnabled) {
+            if (LocalSession.current != null) {
                 FullSpaceModeIconButton(
                     onClick = onRequestFullSpaceMode,
                     modifier = Modifier
@@ -190,8 +202,10 @@ fun MainContentForSpatialContent(
     val context = LocalContext.current
     val exoPlayer = ExoPlayer.Builder(context).build()
 
-    val session = LocalSession.current !!
-    ModelInsideVolume(session = session)
+    // diplay the glb model
+    LocalSession.current?.let { session ->
+        ModelInsideVolume(session = session)
+    }
 
     SpatialBox {
         // Main Panel content (e.g., video list)
@@ -207,7 +221,7 @@ fun MainContentForSpatialContent(
         )
 
         if (openAlertDialog.value) {
-
+            // here we show video in SpatialExternalSurface as this is in XR view
             SpatialExternalSurface(
                 modifier = SubspaceModifier
                     .width(680.dp)
@@ -238,13 +252,12 @@ fun ListOfVideosForSpatialLayout(openAlertDialog: MutableState<Boolean>,
                                  videoLink:(String)->Unit,
                                  onRequestHomeSpaceMode: () -> Unit,
                                  exoPlayer: ExoPlayer){
+
+    // similar to 2d content
     if (!openAlertDialog.value) {
         SpatialPanel(
             SubspaceModifier
-
                 .offset(z = 100.dp,y=-200.dp)
-                .resizable()
-                .movable(),
         ) {
             Surface {
 

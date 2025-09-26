@@ -42,7 +42,7 @@ fun VideoDialog(
     videoUrl: String
 ) {
     val context = LocalContext.current
-
+    //exoplayer is needed to play video of m3u8 format
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             repeatMode = ExoPlayer.REPEAT_MODE_ALL
@@ -72,7 +72,7 @@ fun VideoDialog(
                     tint = Color.Black
                 )
 
-                // Video Surface
+                // Video Surface needed to play a video independent of surface. use this instead of SpatialExternalSurface due to need to run on non XR devices
                 AndroidExternalSurface(
                     modifier = Modifier
                         .fillMaxWidth()
