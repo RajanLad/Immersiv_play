@@ -39,13 +39,12 @@ import com.rajanlad.immersiv_play.R
 @Composable
 fun VideoDialog(
     onDismissRequest: () -> Unit = {},
-    videoUrl:String
+    videoUrl: String
 ) {
     val context = LocalContext.current
+
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
-            // Configure the player
-            // here I'm making the video loop
             repeatMode = ExoPlayer.REPEAT_MODE_ALL
             playWhenReady = true
             setMediaItem(MediaItem.fromUri(videoUrl))
@@ -53,54 +52,40 @@ fun VideoDialog(
         }
     }
 
-    Dialog(onDismissRequest = { onDismissRequest() }) {
+    Dialog(onDismissRequest = onDismissRequest) {
         Card(
-            modifier = Modifier
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             shape = RoundedCornerShape(16.dp),
         ) {
-            Box(modifier = Modifier, contentAlignment = Alignment.BottomEnd ){
-//                Text(
-//                    text = "Close",
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .wrapContentSize(Alignment.Center)
-//                        .zIndex(2.0f),
-//                    textAlign = TextAlign.Center,
-//                )
-
+            Box(modifier = Modifier, contentAlignment = Alignment.TopEnd) {
+                // Close Icon
                 Icon(
                     imageVector = Icons.Filled.Close,
+                    contentDescription = "Close",
                     modifier = Modifier
-                        .wrapContentSize(Alignment.Center)
-                        .zIndex(2.0f).padding(10.dp)
-                        .clickable{
-                            onDismissRequest()
-                        },
-                    contentDescription = "",
+                        .padding(10.dp)
+                        .clickable { onDismissRequest() }
+                        .zIndex(2.0f),
                     tint = Color.Black
                 )
 
-//                Image(
-//                    painter = painterResource(R.drawable.ic_launcher_background),
-//                    contentDescription = null,
-//                    modifier = Modifier.size(exoPlayer.videoSize.width.dp,exoPlayer.videoSize.height.dp))
-
-                AndroidExternalSurface(modifier = Modifier.aspectRatio(16f / 9f),
+                // Video Surface
+                AndroidExternalSurface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f), // Ensures visible surface
                     onInit = {
                         onSurface { surface, _, _ ->
                             exoPlayer.setVideoSurface(surface)
-
                             surface.onDestroyed { exoPlayer.setVideoSurface(null) }
                         }
                     }
                 )
-
             }
-
         }
     }
 }
+
 
 @Preview
 @Composable
